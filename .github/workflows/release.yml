@@ -1,0 +1,50 @@
+---
+name: Release
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create release build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Create release tarball
+        run: |
+          mkdir displayid-${{ github.ref }}
+          cp ./target/release/libdisplayid.so bindings.h displayid-${{ github.ref }}/
+          tar -cvJf displayid-${{ github.ref }}.tar.xz displayid-${{ github.ref }}
+      - name: Upload release build
+        id: upload_build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./displayid-${{ github.ref }}.tar.xz
+          asset_name: libdisplayid-x86_64-linux.tar.xz
+          asset_content_type: application/octet-stream
+      - name: Clean up release tarball
+        run: rm -rf displayid-${{ github.ref }} displayid-${{ github.ref }}.tar.xz
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
