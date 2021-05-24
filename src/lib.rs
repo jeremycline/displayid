@@ -10,6 +10,10 @@ pub enum Error {
     UnknownPrimaryUseCase(u8),
     #[error("DisplayID section checksum was {0}, but the expected checksum was {0}")]
     InvalidChecksum(u8, u8),
+    #[error("DisplayID cannot be larger than 256 * 256 bytes, {0} was provided")]
+    TooLarge(usize),
+    #[error("The DisplayID section size exceeded the total structure size")]
+    Malformed,
 }
 
 pub mod displayid;
