@@ -20,4 +20,4 @@ crate-type = ["lib", "cdylib"]
 thiserror = "1.0"
 
 [build-dependencies]
-cbindgen = "0.19"
+cbindgen = "0.24"
